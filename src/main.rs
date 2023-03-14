@@ -1,6 +1,6 @@
 use anyhow::{bail, Result};
 use clap::Parser;
-use cli::{Action, Args};
+use cli::{Action, AddArgs, Args};
 use std::{
     collections::HashMap,
     fs::{self, File},
@@ -18,7 +18,7 @@ fn main() -> Result<()> {
 
     match args.action {
         Action::Init => init()?,
-        Action::Add(props) => println!("add -> k:{} v:{}", props.key, props.value),
+        Action::Add(props) => add_to_store(&props)?,
         Action::List => list()?,
         Action::Remove(props) => println!("remove -> k:{}", props.key),
     };
@@ -54,6 +54,19 @@ fn list() -> Result<()> {
     for entry in data.keys {
         println!("{}={}", entry.0, entry.1);
     }
+
+    return Ok(());
+}
+
+fn add_to_store(data: &AddArgs) -> Result<()> {
+    let raw = read_raw_config_file()?;
+
+    let mut data_store: DataStore = serde_json::from_str(&raw)?;
+    data_store.add(&data)?;
+
+    let serialized_data = serde_json::to_string_pretty(&data_store)?;
+    let mut output = File::create(PATH)?;
+    write!(output, "{}", serialized_data)?;
 
     return Ok(());
 }
