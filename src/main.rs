@@ -19,7 +19,7 @@ fn main() -> Result<()> {
     match args.action {
         Action::Init => init()?,
         Action::Add(props) => println!("add -> k:{} v:{}", props.key, props.value),
-        Action::List => println!("list"),
+        Action::List => list()?,
         Action::Remove(props) => println!("remove -> k:{}", props.key),
     };
 
@@ -45,4 +45,15 @@ fn init() -> Result<()> {
 fn read_raw_config_file() -> Result<String> {
     let file = fs::read_to_string(PATH)?;
     return Ok(file);
+}
+
+fn list() -> Result<()> {
+    let raw = read_raw_config_file()?;
+
+    let data: DataStore = serde_json::from_str(&raw)?;
+    for entry in data.keys {
+        println!("{}={}", entry.0, entry.1);
+    }
+
+    return Ok(());
 }
